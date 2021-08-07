@@ -525,11 +525,8 @@ bool sc_ReadDir(SC_DirHandle* dir, const char* dirname, char* path, bool& skipEn
 
 // Globbing
 
-class SC_GlobHandle
+struct SC_GlobHandle
 {
-public:
-    SC_GlobHandle();
-    ~SC_GlobHandle();
 #ifdef _WIN32
 	HANDLE mHandle;
 	char mFolder[PATH_MAX];
@@ -568,12 +565,13 @@ SC_GlobHandle* sc_Glob(const char* pattern)
 	flags |= GLOB_QUOTE;
 #endif
 
-	if (0 > ::glob(pattern, flags, NULL, &glob->mHandle)) {
+	int err = ::glob(pattern, flags, NULL, &glob->mHandle);
+	if (err < 0) {
 		delete glob;
 		return 0;
-	} else {
-        glob->mEntry = 0;
-    }
+	}
+
+	glob->mEntry = 0;
 #endif
 
 	return glob;
