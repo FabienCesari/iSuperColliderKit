@@ -33,7 +33,7 @@
 # include <string.h>
 # define snprintf _snprintf
 #endif
-
+# include <glob.h>
 #include <boost/algorithm/string.hpp>
 
 static inline bool stringCaseCompare(const char * a, const char * b)
@@ -130,13 +130,25 @@ bool sc_ReadDir(SC_DirHandle *dir, const char *dirname, char *path, bool &skipEn
 // Globbing
 
 // Abstract glob handle
-struct SC_GlobHandle;
+typedef struct
+{
+#ifdef _WIN32
+    HANDLE mHandle;
+    char mFolder[PATH_MAX];
+    WIN32_FIND_DATA mEntry;
+    char mEntryPath[PATH_MAX];
+    bool mAtEnd;
+#else
+    glob_t mHandle;
+    size_t mEntry;
+#endif
+}SC_GlobHandle;
 
 // Create glob iterator from 'pattern'. Return NULL on failure.
-SC_GlobHandle* sc_Glob(const char* pattern);
+bool sc_Glob(const char* pattern, SC_GlobHandle * globStruct);
 
 // Free glob handle.
-void sc_GlobFree(SC_GlobHandle* glob);
+bool sc_GlobFree(SC_GlobHandle* glob);
 
 // Return next path from glob iterator.
 // Return NULL at end of stream.

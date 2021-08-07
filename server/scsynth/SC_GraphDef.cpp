@@ -534,11 +534,15 @@ GraphDef* GraphDef_Recv(World *inWorld, char *buffer, GraphDef *inList)
 
 GraphDef* GraphDef_LoadGlob(World *inWorld, const char *pattern, GraphDef *inList)
 {
-	SC_GlobHandle* glob = sc_Glob(pattern);
-	if (!glob) return inList;
+    SC_GlobHandle glob;
+    bool retStat = false;
+    bool globStat = sc_Glob(pattern, &glob);
+	
+    if (!globStat)
+        return inList;
 
 	const char* filename;
-	while ((filename = sc_GlobNext(glob)) != 0) {
+	while ((filename = sc_GlobNext(&glob)) != 0) {
 		int len = (int)strlen(filename);
 		if (strncmp(filename+len-9, ".scsyndef", 9)==0) {
 			inList = GraphDef_Load(inWorld, filename, inList);
@@ -547,7 +551,7 @@ GraphDef* GraphDef_LoadGlob(World *inWorld, const char *pattern, GraphDef *inLis
 		GraphDef_Load(inWorld, filename, inList);
 	}
 
-	sc_GlobFree(glob);
+	retStat = sc_GlobFree(&glob);
 	return inList;
 }
 
